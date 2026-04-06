@@ -101,6 +101,17 @@ def create_app(config_name: Optional[str] = None) -> Flask:
         from app.models import User, FinancialRecord  # noqa: F401
         db.create_all()
 
+        # Optional auto-seeding for demo environments (idempotent).
+        # Useful on platforms where "shell / one-off" commands aren't available.
+        if os.getenv("AUTO_SEED", "").lower() in {"1", "true", "yes", "on"}:
+            from app.seed_data import seed_if_empty
+
+            users_created, records_created = seed_if_empty()
+            if users_created or records_created:
+                app.logger.info(
+                    f"Auto-seeded database: users={users_created}, records={records_created}"
+                )
+
     # --- Register a health check endpoint ---
     @app.route("/api/health", methods=["GET"])
     def health_check():

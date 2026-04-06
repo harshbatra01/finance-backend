@@ -162,6 +162,19 @@ python run.py
 
 The server will start at **http://localhost:5050** by default.
 
+### Render (No Shell) Seeding
+
+On Render's free tier, one-off shells may be unavailable. This project supports
+an optional, safe auto-seed mode for demo deployments:
+
+- Set `AUTO_SEED=true` in your Render web service environment variables.
+- Deploy once; the app will seed **only if** the database has no users.
+
+Seeded demo credentials:
+- `admin@example.com` / `password123`
+- `analyst@example.com` / `password123`
+- `viewer@example.com` / `password123`
+
 ### Seed Data
 
 The `seed.py` script creates:
