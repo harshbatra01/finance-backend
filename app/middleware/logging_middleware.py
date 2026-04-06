@@ -9,7 +9,7 @@ This is critical for production debugging and audit trails.
 import logging
 import time
 
-from flask import request, g
+from flask import request, g, Flask, Response
 
 # Configure module-level logger
 logger = logging.getLogger("finance_api")
@@ -24,7 +24,7 @@ if not logger.handlers:
     logger.addHandler(handler)
 
 
-def register_request_logger(app):
+def register_request_logger(app: Flask) -> None:
     """
     Register request logging hooks on the Flask application.
 
@@ -37,12 +37,12 @@ def register_request_logger(app):
     """
 
     @app.before_request
-    def start_timer():
+    def start_timer() -> None:
         """Record the start time of the request."""
         g.start_time = time.time()
 
     @app.after_request
-    def log_request(response):
+    def log_request(response: Response) -> Response:
         """Log the request details after it has been processed."""
         # Calculate request duration in milliseconds
         if hasattr(g, "start_time"):

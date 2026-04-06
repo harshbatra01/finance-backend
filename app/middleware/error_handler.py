@@ -9,6 +9,9 @@ This ensures that no endpoint ever returns a raw HTML error page — every
 error is a predictable JSON object that frontend consumers can parse.
 """
 
+from typing import Any, Tuple
+
+from flask import Flask
 from marshmallow import ValidationError as MarshmallowValidationError
 from werkzeug.exceptions import HTTPException
 
@@ -16,7 +19,7 @@ from app.utils.exceptions import AppException
 from app.utils.responses import error_response
 
 
-def register_error_handlers(app):
+def register_error_handlers(app: Flask) -> None:
     """
     Register global error handlers on the Flask application.
 
@@ -28,7 +31,7 @@ def register_error_handlers(app):
     """
 
     @app.errorhandler(AppException)
-    def handle_app_exception(error):
+    def handle_app_exception(error: AppException) -> Tuple[Any, int]:
         """Handle custom application exceptions with appropriate status codes."""
         return error_response(
             error_code=error.error_code,
@@ -38,7 +41,9 @@ def register_error_handlers(app):
         )
 
     @app.errorhandler(MarshmallowValidationError)
-    def handle_marshmallow_validation_error(error):
+    def handle_marshmallow_validation_error(
+        error: MarshmallowValidationError,
+    ) -> Tuple[Any, int]:
         """
         Handle Marshmallow validation errors.
 
@@ -53,7 +58,7 @@ def register_error_handlers(app):
         )
 
     @app.errorhandler(HTTPException)
-    def handle_http_exception(error):
+    def handle_http_exception(error: HTTPException) -> Tuple[Any, int]:
         """
         Handle standard Werkzeug HTTP exceptions (404, 405, etc.).
 
@@ -66,7 +71,7 @@ def register_error_handlers(app):
         )
 
     @app.errorhandler(Exception)
-    def handle_unexpected_exception(error):
+    def handle_unexpected_exception(error: Exception) -> Tuple[Any, int]:
         """
         Catch-all handler for unhandled exceptions.
 

@@ -68,7 +68,7 @@ def get_record_by_id(record_id: str) -> Dict[str, Any]:
     Raises:
         NotFoundError: If no record exists with the given ID.
     """
-    record = FinancialRecord.query.get(record_id)
+    record = db.session.get(FinancialRecord, record_id)
     if not record or record.deleted_at is not None:
         raise NotFoundError(f"Financial record with ID '{record_id}' not found")
     return record.to_dict()
@@ -172,7 +172,7 @@ def update_record(record_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     Raises:
         NotFoundError: If no record exists with the given ID.
     """
-    record = FinancialRecord.query.get(record_id)
+    record = db.session.get(FinancialRecord, record_id)
     if not record or record.deleted_at is not None:
         raise NotFoundError(f"Financial record with ID '{record_id}' not found")
 
@@ -204,7 +204,7 @@ def delete_record(record_id: str) -> None:
     Raises:
         NotFoundError: If no record exists with the given ID.
     """
-    record = FinancialRecord.query.get(record_id)
+    record = db.session.get(FinancialRecord, record_id)
     if not record or record.deleted_at is not None:
         raise NotFoundError(f"Financial record with ID '{record_id}' not found")
 

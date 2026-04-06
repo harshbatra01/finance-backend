@@ -23,10 +23,16 @@ Error format:
     }
 """
 
+from typing import Any, Dict, Optional, Tuple
+
 from flask import jsonify
 
 
-def success_response(data=None, message="Success", status_code=200):
+def success_response(
+    data: Any = None,
+    message: str = "Success",
+    status_code: int = 200,
+) -> Tuple[Any, int]:
     """
     Create a standardized success response.
 
@@ -46,7 +52,10 @@ def success_response(data=None, message="Success", status_code=200):
     return jsonify(response), status_code
 
 
-def created_response(data=None, message="Resource created successfully"):
+def created_response(
+    data: Any = None,
+    message: str = "Resource created successfully",
+) -> Tuple[Any, int]:
     """
     Create a 201 Created response for POST operations.
 
@@ -60,7 +69,7 @@ def created_response(data=None, message="Resource created successfully"):
     return success_response(data=data, message=message, status_code=201)
 
 
-def no_content_response():
+def no_content_response() -> Tuple[str, int]:
     """
     Create a 204 No Content response for DELETE operations.
 
@@ -70,7 +79,12 @@ def no_content_response():
     return "", 204
 
 
-def error_response(error_code, message, details=None, status_code=400):
+def error_response(
+    error_code: str,
+    message: str,
+    details: Optional[Dict[str, Any]] = None,
+    status_code: int = 400,
+) -> Tuple[Any, int]:
     """
     Create a standardized error response.
 

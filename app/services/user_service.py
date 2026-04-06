@@ -144,7 +144,7 @@ def get_user_by_id(user_id: str) -> Dict[str, Any]:
     Raises:
         NotFoundError: If no user exists with the given ID.
     """
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user or user.deleted_at is not None:
         raise NotFoundError(f"User with ID '{user_id}' not found")
     return user.to_dict()
@@ -194,7 +194,7 @@ def update_user(user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         NotFoundError: If no user exists with the given ID.
         ConflictError: If the new email is already taken by another user.
     """
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user or user.deleted_at is not None:
         raise NotFoundError(f"User with ID '{user_id}' not found")
 
@@ -234,7 +234,7 @@ def update_user_role(user_id: str, new_role: str) -> Dict[str, Any]:
         NotFoundError: If no user exists with the given ID.
         ValidationError: If this would remove the last admin.
     """
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user or user.deleted_at is not None:
         raise NotFoundError(f"User with ID '{user_id}' not found")
 
@@ -277,7 +277,7 @@ def update_user_status(user_id: str, new_status: str) -> Dict[str, Any]:
         NotFoundError: If no user exists with the given ID.
         ValidationError: If this would deactivate the last admin.
     """
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user or user.deleted_at is not None:
         raise NotFoundError(f"User with ID '{user_id}' not found")
 
@@ -314,7 +314,7 @@ def delete_user(user_id: str) -> None:
         NotFoundError: If no user exists with the given ID.
         ValidationError: If this would remove the last admin.
     """
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user or user.deleted_at is not None:
         raise NotFoundError(f"User with ID '{user_id}' not found")
 

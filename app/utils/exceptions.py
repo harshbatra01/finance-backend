@@ -1,3 +1,5 @@
+from typing import Any, Optional
+
 """
 Custom exception classes for the application.
 
@@ -27,7 +29,11 @@ class AppException(Exception):
     status_code = 500
     error_code = "INTERNAL_ERROR"
 
-    def __init__(self, message="An unexpected error occurred", details=None):
+    def __init__(
+        self,
+        message: str = "An unexpected error occurred",
+        details: Optional[Any] = None,
+    ) -> None:
         super().__init__(message)
         self.message = message
         self.details = details
@@ -39,7 +45,11 @@ class ValidationError(AppException):
     status_code = 400
     error_code = "VALIDATION_ERROR"
 
-    def __init__(self, message="Invalid input data", details=None):
+    def __init__(
+        self,
+        message: str = "Invalid input data",
+        details: Optional[Any] = None,
+    ) -> None:
         super().__init__(message, details)
 
 
@@ -49,7 +59,11 @@ class AuthenticationError(AppException):
     status_code = 401
     error_code = "AUTHENTICATION_ERROR"
 
-    def __init__(self, message="Authentication required", details=None):
+    def __init__(
+        self,
+        message: str = "Authentication required",
+        details: Optional[Any] = None,
+    ) -> None:
         super().__init__(message, details)
 
 
@@ -59,7 +73,11 @@ class AuthorizationError(AppException):
     status_code = 403
     error_code = "AUTHORIZATION_ERROR"
 
-    def __init__(self, message="Insufficient permissions", details=None):
+    def __init__(
+        self,
+        message: str = "Insufficient permissions",
+        details: Optional[Any] = None,
+    ) -> None:
         super().__init__(message, details)
 
 
@@ -69,7 +87,11 @@ class NotFoundError(AppException):
     status_code = 404
     error_code = "NOT_FOUND"
 
-    def __init__(self, message="Resource not found", details=None):
+    def __init__(
+        self,
+        message: str = "Resource not found",
+        details: Optional[Any] = None,
+    ) -> None:
         super().__init__(message, details)
 
 
@@ -79,5 +101,9 @@ class ConflictError(AppException):
     status_code = 409
     error_code = "CONFLICT"
 
-    def __init__(self, message="Resource conflict", details=None):
+    def __init__(
+        self,
+        message: str = "Resource conflict",
+        details: Optional[Any] = None,
+    ) -> None:
         super().__init__(message, details)

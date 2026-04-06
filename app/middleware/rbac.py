@@ -24,13 +24,15 @@ Design Note:
 """
 
 from functools import wraps
+from typing import Any, Callable, TypeVar, cast
 
 from flask import g
 
 from app.utils.exceptions import AuthorizationError
 
+RouteFunction = TypeVar("RouteFunction", bound=Callable[..., Any])
 
-def require_role(*allowed_roles):
+def require_role(*allowed_roles: str) -> Callable[[RouteFunction], RouteFunction]:
     """
     Decorator factory that restricts access to users with specified roles.
 
@@ -47,9 +49,9 @@ def require_role(*allowed_roles):
         @require_role('analyst', 'admin')  # analyst or admin
     """
 
-    def decorator(f):
+    def decorator(f: RouteFunction) -> RouteFunction:
         @wraps(f)
-        def decorated(*args, **kwargs):
+        def decorated(*args: Any, **kwargs: Any) -> Any:
             current_user = g.get("current_user")
             if not current_user:
                 raise AuthorizationError("Authentication required before authorization check")
@@ -63,6 +65,6 @@ def require_role(*allowed_roles):
 
             return f(*args, **kwargs)
 
-        return decorated
+        return cast(RouteFunction, decorated)
 
     return decorator

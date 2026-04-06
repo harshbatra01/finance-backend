@@ -60,6 +60,35 @@ def create_record() -> Tuple[dict, int]:
         201: Created record data
         400: Validation errors
         403: Insufficient permissions
+
+    ---
+    tags:
+      - Records
+    summary: Create financial record
+    security:
+      - bearerAuth: []
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [amount, type, category, date]
+          properties:
+            amount: {type: number, format: float, example: 5000.0}
+            type: {type: string, enum: [income, expense]}
+            category: {type: string, example: Salary}
+            date: {type: string, format: date, example: "2025-03-15"}
+            description: {type: string, example: March pay}
+    responses:
+      201:
+        description: Record created
+      400:
+        description: Validation error
+      403:
+        description: Admin role required
     """
     data = _create_schema.load(request.get_json(force=True))
     record = record_service.create_record(data, created_by_user_id=g.current_user.id)
@@ -89,6 +118,52 @@ def list_records() -> Tuple[dict, int]:
 
     Returns:
         200: Paginated list of records with pagination metadata
+
+    ---
+    tags:
+      - Records
+    summary: List financial records
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: type
+        type: string
+        enum: [income, expense]
+      - in: query
+        name: category
+        type: string
+      - in: query
+        name: date_from
+        type: string
+        format: date
+      - in: query
+        name: date_to
+        type: string
+        format: date
+      - in: query
+        name: min_amount
+        type: number
+      - in: query
+        name: max_amount
+        type: number
+      - in: query
+        name: sort_by
+        type: string
+        enum: [date, amount, category, type, created_at]
+      - in: query
+        name: sort_order
+        type: string
+        enum: [asc, desc]
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: per_page
+        type: integer
+    responses:
+      200:
+        description: Records retrieved
     """
     filters = {}
 
@@ -162,6 +237,23 @@ def get_record(record_id: str) -> Tuple[dict, int]:
     Returns:
         200: Record data
         404: Record not found
+
+    ---
+    tags:
+      - Records
+    summary: Get record by ID
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: record_id
+        required: true
+        type: string
+    responses:
+      200:
+        description: Record retrieved
+      404:
+        description: Record not found
     """
     record = record_service.get_record_by_id(record_id)
     return success_response(data=record)
@@ -194,6 +286,39 @@ def update_record(record_id: str) -> Tuple[dict, int]:
         400: Validation errors
         403: Insufficient permissions
         404: Record not found
+
+    ---
+    tags:
+      - Records
+    summary: Update record
+    security:
+      - bearerAuth: []
+    consumes:
+      - application/json
+    parameters:
+      - in: path
+        name: record_id
+        required: true
+        type: string
+      - in: body
+        name: body
+        schema:
+          type: object
+          properties:
+            amount: {type: number}
+            type: {type: string, enum: [income, expense]}
+            category: {type: string}
+            date: {type: string, format: date}
+            description: {type: string}
+    responses:
+      200:
+        description: Record updated
+      400:
+        description: Validation error
+      403:
+        description: Admin role required
+      404:
+        description: Record not found
     """
     data = _update_schema.load(request.get_json(force=True))
     if not data:
@@ -220,6 +345,25 @@ def delete_record(record_id: str) -> Union[Tuple[str, int], Tuple[dict, int]]:
         204: No content (successfully deleted)
         403: Insufficient permissions
         404: Record not found
+
+    ---
+    tags:
+      - Records
+    summary: Soft-delete record
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: record_id
+        required: true
+        type: string
+    responses:
+      204:
+        description: Record deleted
+      403:
+        description: Admin role required
+      404:
+        description: Record not found
     """
     record_service.delete_record(record_id)
     return no_content_response()

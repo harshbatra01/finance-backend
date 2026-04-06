@@ -10,14 +10,15 @@ Routes:
     GET  /api/auth/me        — Get the current authenticated user's profile
 """
 
-from flask import Blueprint, request
+from typing import Tuple
+
+from flask import Blueprint, request, g
 
 from app.middleware.auth import require_auth
 from app.extensions import limiter
 from app.schemas.user import UserRegistrationSchema, LoginSchema
 from app.services import user_service
 from app.utils.responses import success_response, created_response
-from flask import g
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -28,7 +29,7 @@ _login_schema = LoginSchema()
 
 @auth_bp.route("/register", methods=["POST"])
 @limiter.limit("20 per hour")
-def register():
+def register() -> Tuple[dict, int]:
     """
     Register a new user account.
 
@@ -44,6 +45,32 @@ def register():
         201: Created user data with success message
         400: Validation errors
         409: Email already exists
+
+    ---
+    tags:
+      - Auth
+    summary: Register a new user
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [email, name, password]
+          properties:
+            email: {type: string, example: user@example.com}
+            name: {type: string, example: John Doe}
+            password: {type: string, example: securepass123}
+            role: {type: string, enum: [viewer, analyst, admin], example: viewer}
+    responses:
+      201:
+        description: User registered successfully
+      400:
+        description: Validation error
+      409:
+        description: Email already exists
     """
     data = _registration_schema.load(request.get_json(force=True))
     user = user_service.create_user(data)
@@ -52,7 +79,7 @@ def register():
 
 @auth_bp.route("/login", methods=["POST"])
 @limiter.limit("10 per minute")
-def login():
+def login() -> Tuple[dict, int]:
     """
     Authenticate and receive a JWT token.
 
@@ -65,6 +92,28 @@ def login():
     Returns:
         200: JWT token and user data
         401: Invalid credentials or inactive account
+
+    ---
+    tags:
+      - Auth
+    summary: Login and get JWT
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [email, password]
+          properties:
+            email: {type: string, example: user@example.com}
+            password: {type: string, example: securepass123}
+    responses:
+      200:
+        description: Login successful
+      401:
+        description: Invalid credentials
     """
     data = _login_schema.load(request.get_json(force=True))
     result = user_service.authenticate_user(data["email"], data["password"])
@@ -76,7 +125,7 @@ def login():
 
 @auth_bp.route("/me", methods=["GET"])
 @require_auth
-def get_profile():
+def get_profile() -> Tuple[dict, int]:
     """
     Get the current authenticated user's profile.
 
@@ -85,6 +134,18 @@ def get_profile():
     Returns:
         200: Current user's data
         401: Invalid or missing token
+
+    ---
+    tags:
+      - Auth
+    summary: Get current user profile
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Profile retrieved successfully
+      401:
+        description: Missing or invalid token
     """
     return success_response(
         data=g.current_user.to_dict(),

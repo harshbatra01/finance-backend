@@ -19,15 +19,18 @@ Security checks:
 """
 
 from functools import wraps
+from typing import Any, Callable, TypeVar, cast
 
 import jwt
 from flask import request, g, current_app
 
+from app.extensions import db
 from app.models.user import User, UserStatus
 from app.utils.exceptions import AuthenticationError
 
+RouteFunction = TypeVar("RouteFunction", bound=Callable[..., Any])
 
-def require_auth(f):
+def require_auth(f: RouteFunction) -> RouteFunction:
     """
     Decorator that enforces JWT authentication on a route.
 
@@ -41,7 +44,7 @@ def require_auth(f):
     """
 
     @wraps(f)
-    def decorated(*args, **kwargs):
+    def decorated(*args: Any, **kwargs: Any) -> Any:
         # --- Extract token from header ---
         auth_header = request.headers.get("Authorization")
         if not auth_header:
@@ -72,7 +75,7 @@ def require_auth(f):
         if not user_id:
             raise AuthenticationError("Invalid token payload")
 
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user or user.deleted_at is not None:
             raise AuthenticationError("User not found")
 
@@ -86,4 +89,4 @@ def require_auth(f):
         g.current_user = user
         return f(*args, **kwargs)
 
-    return decorated
+    return cast(RouteFunction, decorated)

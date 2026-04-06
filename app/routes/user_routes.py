@@ -45,6 +45,27 @@ def list_users() -> Tuple[dict, int]:
 
     Returns:
         200: List of users
+
+    ---
+    tags:
+      - Users
+    summary: List users
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: role
+        type: string
+        enum: [viewer, analyst, admin]
+      - in: query
+        name: status
+        type: string
+        enum: [active, inactive]
+    responses:
+      200:
+        description: Users retrieved
+      403:
+        description: Admin role required
     """
     filters = {
         "role": request.args.get("role"),
@@ -70,6 +91,23 @@ def get_user(user_id: str) -> Tuple[dict, int]:
     Returns:
         200: User data
         404: User not found
+
+    ---
+    tags:
+      - Users
+    summary: Get user by ID
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: user_id
+        required: true
+        type: string
+    responses:
+      200:
+        description: User retrieved
+      404:
+        description: User not found
     """
     user = user_service.get_user_by_id(user_id)
     return success_response(data=user)
@@ -97,6 +135,33 @@ def update_user(user_id: str) -> Tuple[dict, int]:
         400: Validation errors
         404: User not found
         409: Email already taken
+
+    ---
+    tags:
+      - Users
+    summary: Update user profile
+    security:
+      - bearerAuth: []
+    consumes:
+      - application/json
+    parameters:
+      - in: path
+        name: user_id
+        required: true
+        type: string
+      - in: body
+        name: body
+        schema:
+          type: object
+          properties:
+            email: {type: string}
+            name: {type: string}
+            password: {type: string}
+    responses:
+      200:
+        description: User updated
+      400:
+        description: Validation error
     """
     data = _update_schema.load(request.get_json(force=True))
     if not data:
@@ -123,6 +188,33 @@ def update_role(user_id: str) -> Tuple[dict, int]:
         200: Updated user data
         400: Invalid role or last-admin protection
         404: User not found
+
+    ---
+    tags:
+      - Users
+    summary: Update user role
+    security:
+      - bearerAuth: []
+    consumes:
+      - application/json
+    parameters:
+      - in: path
+        name: user_id
+        required: true
+        type: string
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [role]
+          properties:
+            role: {type: string, enum: [viewer, analyst, admin]}
+    responses:
+      200:
+        description: User role updated
+      400:
+        description: Invalid request
     """
     data = _role_schema.load(request.get_json(force=True))
     user = user_service.update_user_role(user_id, data["role"])
@@ -146,6 +238,33 @@ def update_status(user_id: str) -> Tuple[dict, int]:
         200: Updated user data
         400: Last-admin protection
         404: User not found
+
+    ---
+    tags:
+      - Users
+    summary: Update user status
+    security:
+      - bearerAuth: []
+    consumes:
+      - application/json
+    parameters:
+      - in: path
+        name: user_id
+        required: true
+        type: string
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [status]
+          properties:
+            status: {type: string, enum: [active, inactive]}
+    responses:
+      200:
+        description: User status updated
+      400:
+        description: Invalid request
     """
     data = _status_schema.load(request.get_json(force=True))
     user = user_service.update_user_status(user_id, data["status"])
@@ -166,6 +285,25 @@ def delete_user(user_id: str) -> Union[Tuple[str, int], Tuple[dict, int]]:
         204: No content (successfully deleted)
         400: Last-admin protection
         404: User not found
+
+    ---
+    tags:
+      - Users
+    summary: Soft-delete a user
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: user_id
+        required: true
+        type: string
+    responses:
+      204:
+        description: User deleted
+      400:
+        description: Invalid operation
+      404:
+        description: User not found
     """
     user_service.delete_user(user_id)
     return no_content_response()

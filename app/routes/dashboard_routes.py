@@ -11,6 +11,8 @@ Routes:
     GET /api/dashboard/recent-activity    — Most recent records
 """
 
+from typing import Tuple
+
 from flask import Blueprint, request
 
 from app.middleware.auth import require_auth
@@ -24,7 +26,7 @@ dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/api/dashboard")
 @dashboard_bp.route("/summary", methods=["GET"])
 @require_auth
 @require_role("analyst", "admin")
-def get_summary():
+def get_summary() -> Tuple[dict, int]:
     """
     Get overall financial summary.
 
@@ -44,6 +46,18 @@ def get_summary():
                 "total_records": 30
             }
         }
+
+    ---
+    tags:
+      - Dashboard
+    summary: Get financial summary
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Summary retrieved
+      403:
+        description: Analyst/admin role required
     """
     summary = dashboard_service.get_summary()
     return success_response(data=summary, message="Dashboard summary retrieved")
@@ -52,7 +66,7 @@ def get_summary():
 @dashboard_bp.route("/category-breakdown", methods=["GET"])
 @require_auth
 @require_role("analyst", "admin")
-def get_category_breakdown():
+def get_category_breakdown() -> Tuple[dict, int]:
     """
     Get income and expense totals grouped by category.
 
@@ -75,6 +89,18 @@ def get_category_breakdown():
                 }
             ]
         }
+
+    ---
+    tags:
+      - Dashboard
+    summary: Get category breakdown
+    security:
+      - bearerAuth: []
+    responses:
+      200:
+        description: Breakdown retrieved
+      403:
+        description: Analyst/admin role required
     """
     breakdown = dashboard_service.get_category_breakdown()
     return success_response(
@@ -86,7 +112,7 @@ def get_category_breakdown():
 @dashboard_bp.route("/trends", methods=["GET"])
 @require_auth
 @require_role("analyst", "admin")
-def get_trends():
+def get_trends() -> Tuple[dict, int]:
     """
     Get monthly income and expense trends.
 
@@ -99,6 +125,23 @@ def get_trends():
         200: List of monthly data points with income, expenses, and net.
              Months with no records are included with zero values for
              continuous chart rendering.
+
+    ---
+    tags:
+      - Dashboard
+    summary: Get monthly financial trends
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: months
+        type: integer
+        default: 12
+    responses:
+      200:
+        description: Trends retrieved
+      403:
+        description: Analyst/admin role required
     """
     months = request.args.get("months", 12, type=int)
     months = min(24, max(1, months))  # Clamp to valid range
@@ -113,7 +156,7 @@ def get_trends():
 @dashboard_bp.route("/recent-activity", methods=["GET"])
 @require_auth
 @require_role("analyst", "admin")
-def get_recent_activity():
+def get_recent_activity() -> Tuple[dict, int]:
     """
     Get the most recent financial records.
 
@@ -124,6 +167,23 @@ def get_recent_activity():
 
     Returns:
         200: List of recent records, newest first.
+
+    ---
+    tags:
+      - Dashboard
+    summary: Get recent financial activity
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: limit
+        type: integer
+        default: 10
+    responses:
+      200:
+        description: Recent activity retrieved
+      403:
+        description: Analyst/admin role required
     """
     limit = request.args.get("limit", 10, type=int)
     limit = min(50, max(1, limit))  # Clamp to valid range

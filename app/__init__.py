@@ -11,17 +11,20 @@ The factory is the single source of truth for how the application is assembled.
 """
 
 import os
+from typing import Optional
 
 from flask import Flask, request
 from flask_cors import CORS
+from flasgger import Swagger
 
 from config import config_by_name
 from app.extensions import db, limiter
 from app.middleware.error_handler import register_error_handlers
+from app.middleware.logging_middleware import register_request_logger
 from app.utils.exceptions import ValidationError
 
 
-def create_app(config_name=None):
+def create_app(config_name: Optional[str] = None) -> Flask:
     """
     Create and configure the Flask application.
 
@@ -44,7 +47,6 @@ def create_app(config_name=None):
     CORS(app)  # Enable CORS for frontend integration
     
     # Initialize Swagger UI
-    from flasgger import Swagger
     swagger_config = {
         "headers": [],
         "specs": [
@@ -88,7 +90,6 @@ def create_app(config_name=None):
     register_error_handlers(app)
 
     # --- Register request logger ---
-    from app.middleware.logging_middleware import register_request_logger
     register_request_logger(app)
 
     # --- Register route blueprints ---
@@ -103,13 +104,23 @@ def create_app(config_name=None):
     # --- Register a health check endpoint ---
     @app.route("/api/health", methods=["GET"])
     def health_check():
-        """Simple health check endpoint for monitoring."""
+        """
+        Simple health check endpoint for monitoring.
+
+        ---
+        tags:
+          - Health
+        summary: Health check
+        responses:
+          200:
+            description: Service is healthy
+        """
         return {"status": "healthy", "service": "finance-backend"}, 200
 
     return app
 
 
-def _register_blueprints(app):
+def _register_blueprints(app: Flask) -> None:
     """
     Register all route blueprints with the application.
 

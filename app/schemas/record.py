@@ -6,7 +6,8 @@ Includes business rule validation such as ensuring amounts are positive
 and dates are not in the future.
 """
 
-from datetime import date
+from datetime import date as dt_date
+from typing import Optional
 
 from marshmallow import Schema, fields, validate, validates, ValidationError
 
@@ -51,7 +52,7 @@ class RecordCreateSchema(Schema):
     )
 
     @validates("amount")
-    def validate_amount_positive(self, value):
+    def validate_amount_positive(self, value: float) -> None:
         """Ensure amount is a positive number."""
         if value <= 0:
             raise ValidationError("Amount must be greater than zero")
@@ -60,13 +61,13 @@ class RecordCreateSchema(Schema):
             raise ValidationError("Amount can have at most 2 decimal places")
 
     @validates("date")
-    def validate_date_not_future(self, value):
+    def validate_date_not_future(self, value: dt_date) -> None:
         """Ensure the transaction date is not in the future."""
-        if value > date.today():
+        if value > dt_date.today():
             raise ValidationError("Date cannot be in the future")
 
     @validates("category")
-    def validate_category_not_blank(self, value):
+    def validate_category_not_blank(self, value: str) -> None:
         """Ensure category is not just whitespace."""
         if not value.strip():
             raise ValidationError("Category cannot be blank")
@@ -98,18 +99,18 @@ class RecordUpdateSchema(Schema):
     )
 
     @validates("amount")
-    def validate_amount_positive(self, value):
+    def validate_amount_positive(self, value: Optional[float]) -> None:
         if value is not None and value <= 0:
             raise ValidationError("Amount must be greater than zero")
         if value is not None and round(value, 2) != value:
             raise ValidationError("Amount can have at most 2 decimal places")
 
     @validates("date")
-    def validate_date_not_future(self, value):
-        if value is not None and value > date.today():
+    def validate_date_not_future(self, value: Optional[dt_date]) -> None:
+        if value is not None and value > dt_date.today():
             raise ValidationError("Date cannot be in the future")
 
     @validates("category")
-    def validate_category_not_blank(self, value):
+    def validate_category_not_blank(self, value: Optional[str]) -> None:
         if value is not None and not value.strip():
             raise ValidationError("Category cannot be blank")

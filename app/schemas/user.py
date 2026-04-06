@@ -6,9 +6,11 @@ API input. Each schema enforces field-level constraints and produces clear
 error messages when validation fails.
 """
 
+from typing import Optional
+
 from marshmallow import Schema, fields, validate, validates, ValidationError
 
-from app.models.user import User, UserRole, UserStatus
+from app.models.user import UserRole, UserStatus
 
 
 class UserRegistrationSchema(Schema):
@@ -40,7 +42,7 @@ class UserRegistrationSchema(Schema):
     )
 
     @validates("name")
-    def validate_name_not_blank(self, value):
+    def validate_name_not_blank(self, value: str) -> None:
         """Ensure name is not just whitespace."""
         if not value.strip():
             raise ValidationError("Name cannot be blank")
@@ -61,7 +63,7 @@ class UserUpdateSchema(Schema):
     )
 
     @validates("name")
-    def validate_name_not_blank(self, value):
+    def validate_name_not_blank(self, value: Optional[str]) -> None:
         if value is not None and not value.strip():
             raise ValidationError("Name cannot be blank")
 
